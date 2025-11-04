@@ -7,7 +7,10 @@ const swapRoutes = require('./routes/swaps');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://slot-swapper.vercel.app', 'https://slot-swapper-nl1f7ps46-himajas-projects.vercel.app', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
