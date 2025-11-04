@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String
+  events   Event[]
+  sentRequests     SwapRequest[] @relation("FromUser")
+  receivedRequests SwapRequest[] @relation("ToUser")
+}
+
+model Event {
+  id        Int      @id @default(autoincrement())
+  title     String
+  startTime DateTime
+  endTime   DateTime
+  status    String   @default("BUSY") // BUSY, SWAPPABLE, SWAP_PENDING
+  ownerId   Int
+  owner     User     @relation(fields: [ownerId], references: [id])
+  mySlotRequests    SwapRequest[] @relation("MySlot")
+  theirSlotRequests SwapRequest[] @relation("TheirSlot")
+}
+
+model SwapRequest {
+  id         Int    @id @default(autoincrement())
+  mySlotId   Int
+  theirSlotId Int
+  fromUserId Int
+  toUserId   Int
+  status     String @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  mySlot     Event  @relation("MySlot", fields: [mySlotId], references: [id])
+  theirSlot  Event  @relation("TheirSlot", fields: [theirSlotId], references: [id])
+  fromUser   User   @relation("FromUser", fields: [fromUserId], references: [id])
+  toUser     User   @relation("ToUser", fields: [toUserId], references: [id])
+}
