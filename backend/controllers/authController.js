@@ -10,7 +10,12 @@ let db;
 
 async function connectDB() {
   if (!client) {
-    client = new MongoClient(MONGODB_URI);
+    client = new MongoClient(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      ssl: true,
+      tlsAllowInvalidCertificates: true
+    });
     await client.connect();
     db = client.db('slotswapper');
   }

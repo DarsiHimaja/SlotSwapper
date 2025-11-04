@@ -29,7 +29,12 @@ router.post('/test-register', async (req, res) => {
       return res.status(500).json({ error: 'No database URL' });
     }
 
-    const client = new MongoClient(MONGODB_URI);
+    const client = new MongoClient(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      ssl: true,
+      tlsAllowInvalidCertificates: true
+    });
     await client.connect();
     const db = client.db('slotswapper');
     const users = db.collection('users');
