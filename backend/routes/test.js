@@ -4,12 +4,13 @@ const { PrismaClient } = require('@prisma/client');
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.get('/db-test', async (req, res) => {
+// Test route without auth
+router.get('/test', async (req, res) => {
   try {
     await prisma.$connect();
-    res.json({ status: 'Database connected successfully' });
+    res.json({ status: 'Database connected successfully', timestamp: new Date() });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, details: error.stack });
   }
 });
 
