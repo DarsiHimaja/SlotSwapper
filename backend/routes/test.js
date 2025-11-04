@@ -14,4 +14,17 @@ router.get('/test', async (req, res) => {
   }
 });
 
+// Push database schema
+router.get('/setup-db', async (req, res) => {
+  try {
+    // This will create the collections in MongoDB
+    await prisma.user.findMany();
+    await prisma.event.findMany();
+    await prisma.swapRequest.findMany();
+    res.json({ status: 'Database schema initialized successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;
