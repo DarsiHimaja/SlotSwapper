@@ -14,10 +14,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use('/api', testRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api', swapRoutes);
-app.use('/api', testRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
