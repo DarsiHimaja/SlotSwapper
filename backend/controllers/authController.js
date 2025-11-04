@@ -1,26 +1,12 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { MongoClient } = require('mongodb');
 
 const JWT_SECRET = 'your-secret-key';
-const MONGODB_URI = process.env.DATABASE_URL || 'mongodb://localhost:27017/slotswapper';
 
-let client;
-let db;
-
-async function connectDB() {
-  if (!client) {
-    client = new MongoClient(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      ssl: true,
-      tlsAllowInvalidCertificates: true
-    });
-    await client.connect();
-    db = client.db('slotswapper');
-  }
-  return db;
-}
+// Simple in-memory storage (for demo purposes)
+let users = [];
+let events = [];
+let swapRequests = [];
 
 const register = async (req, res) => {
   try {
@@ -30,28 +16,30 @@ const register = async (req, res) => {
       return res.status(400).json({ error: 'All fields are required' });
     }
     
-    const database = await connectDB();
-    const users = database.collection('users');
-    
     // Check if user exists
-    const existingUser = await users.findOne({ email });
+    const existingUser = users.find(u => u.email === email);
     if (existingUser) {
       return res.status(400).json({ error: 'Email already exists' });
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userId = Date.now().toString();
     
-    const result = await users.insertOne({
+    const user = {
+      id: userId,
       name,
       email,
       password: hashedPassword,
       createdAt: new Date()
+    };
+    
+    users.push(user);
+    
+    const token = jwt.sign({ userId }, JWT_SECRET);
+    res.json({ 
+      token, 
+      user: { id: userId, name, email } 
     });
-    
-    const user = { id: result.insertedId, name, email };
-    const token = jwt.sign({ userId: result.insertedId }, JWT_SECRET);
-    
-    res.json({ token, user });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed' });
@@ -66,10 +54,7 @@ const login = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
     
-    const database = await connectDB();
-    const users = database.collection('users');
-    
-    const user = await users.findOne({ email });
+    const user = users.find(u => u.email === email);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -79,10 +64,10 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET);
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET);
     res.json({ 
       token, 
-      user: { id: user._id, name: user.name, email: user.email } 
+      user: { id: user.id, name: user.name, email: user.email } 
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -90,4 +75,4 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+module.exports = { register, login, users, events, swapRequests };

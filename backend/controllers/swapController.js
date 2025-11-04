@@ -1,16 +1,20 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const { events, swapRequests, users } = require('./authController');
 
 const getSwappableSlots = async (req, res) => {
   try {
-    const events = await prisma.event.findMany({
-      where: {
-        status: 'SWAPPABLE',
-        ownerId: { not: req.userId }
-      },
-      include: { owner: { select: { name: true, email: true } } }
+    const swappableEvents = events.filter(event => 
+      event.status === 'SWAPPABLE' && event.ownerId !== req.userId
+    );
+    
+    const eventsWithOwner = swappableEvents.map(event => {
+      const owner = users.find(u => u.id === event.ownerId);
+      return {
+        ...event,
+        owner: { name: owner?.name, email: owner?.email }
+      };
     });
-    res.json(events);
+    
+    res.json(eventsWithOwner);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -20,23 +24,29 @@ const createSwapRequest = async (req, res) => {
   try {
     const { mySlotId, theirSlotId } = req.body;
     
-    const theirSlot = await prisma.event.findUnique({
-      where: { id: theirSlotId }
-    });
+    const theirSlot = events.find(e => e.id === theirSlotId);
+    if (!theirSlot) {
+      return res.status(404).json({ error: 'Slot not found' });
+    }
     
-    const swapRequest = await prisma.swapRequest.create({
-      data: {
-        mySlotId,
-        theirSlotId,
-        fromUserId: req.userId,
-        toUserId: theirSlot.ownerId
-      }
-    });
+    const requestId = Date.now().toString();
+    const swapRequest = {
+      id: requestId,
+      mySlotId,
+      theirSlotId,
+      fromUserId: req.userId,
+      toUserId: theirSlot.ownerId,
+      status: 'PENDING'
+    };
     
-    await prisma.event.updateMany({
-      where: { id: { in: [mySlotId, theirSlotId] } },
-      data: { status: 'SWAP_PENDING' }
-    });
+    swapRequests.push(swapRequest);
+    
+    // Update event statuses
+    const mySlotIndex = events.findIndex(e => e.id === mySlotId);
+    const theirSlotIndex = events.findIndex(e => e.id === theirSlotId);
+    
+    if (mySlotIndex !== -1) events[mySlotIndex].status = 'SWAP_PENDING';
+    if (theirSlotIndex !== -1) events[theirSlotIndex].status = 'SWAP_PENDING';
     
     res.json(swapRequest);
   } catch (error) {
@@ -49,41 +59,37 @@ const respondToSwapRequest = async (req, res) => {
     const { id } = req.params;
     const { accept } = req.body;
     
-    const swapRequest = await prisma.swapRequest.findUnique({
-      where: { id: id },
-      include: { mySlot: true, theirSlot: true }
-    });
+    const requestIndex = swapRequests.findIndex(r => r.id === id);
+    if (requestIndex === -1) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+    
+    const swapRequest = swapRequests[requestIndex];
     
     if (accept) {
-      await prisma.$transaction([
-        prisma.event.update({
-          where: { id: swapRequest.mySlotId },
-          data: { ownerId: swapRequest.toUserId, status: 'BUSY' }
-        }),
-        prisma.event.update({
-          where: { id: swapRequest.theirSlotId },
-          data: { ownerId: swapRequest.fromUserId, status: 'BUSY' }
-        }),
-        prisma.swapRequest.update({
-          where: { id: id },
-          data: { status: 'ACCEPTED' }
-        })
-      ]);
+      // Swap owners
+      const mySlotIndex = events.findIndex(e => e.id === swapRequest.mySlotId);
+      const theirSlotIndex = events.findIndex(e => e.id === swapRequest.theirSlotId);
+      
+      if (mySlotIndex !== -1 && theirSlotIndex !== -1) {
+        const tempOwnerId = events[mySlotIndex].ownerId;
+        events[mySlotIndex].ownerId = events[theirSlotIndex].ownerId;
+        events[theirSlotIndex].ownerId = tempOwnerId;
+        
+        events[mySlotIndex].status = 'BUSY';
+        events[theirSlotIndex].status = 'BUSY';
+      }
+      
+      swapRequests[requestIndex].status = 'ACCEPTED';
     } else {
-      await prisma.$transaction([
-        prisma.event.update({
-          where: { id: swapRequest.mySlotId },
-          data: { status: 'SWAPPABLE' }
-        }),
-        prisma.event.update({
-          where: { id: swapRequest.theirSlotId },
-          data: { status: 'SWAPPABLE' }
-        }),
-        prisma.swapRequest.update({
-          where: { id: id },
-          data: { status: 'REJECTED' }
-        })
-      ]);
+      // Revert statuses
+      const mySlotIndex = events.findIndex(e => e.id === swapRequest.mySlotId);
+      const theirSlotIndex = events.findIndex(e => e.id === swapRequest.theirSlotId);
+      
+      if (mySlotIndex !== -1) events[mySlotIndex].status = 'SWAPPABLE';
+      if (theirSlotIndex !== -1) events[theirSlotIndex].status = 'SWAPPABLE';
+      
+      swapRequests[requestIndex].status = 'REJECTED';
     }
     
     res.json({ message: accept ? 'Swap accepted' : 'Swap rejected' });
@@ -94,26 +100,29 @@ const respondToSwapRequest = async (req, res) => {
 
 const getSwapRequests = async (req, res) => {
   try {
-    const [incoming, outgoing] = await Promise.all([
-      prisma.swapRequest.findMany({
-        where: { toUserId: req.userId },
-        include: {
-          mySlot: true,
-          theirSlot: true,
-          fromUser: { select: { name: true, email: true } }
-        }
-      }),
-      prisma.swapRequest.findMany({
-        where: { fromUserId: req.userId },
-        include: {
-          mySlot: true,
-          theirSlot: true,
-          toUser: { select: { name: true, email: true } }
-        }
-      })
-    ]);
+    const incoming = swapRequests.filter(r => r.toUserId === req.userId);
+    const outgoing = swapRequests.filter(r => r.fromUserId === req.userId);
     
-    res.json({ incoming, outgoing });
+    // Add event and user details
+    const enrichRequests = (requests) => requests.map(request => {
+      const mySlot = events.find(e => e.id === request.mySlotId);
+      const theirSlot = events.find(e => e.id === request.theirSlotId);
+      const fromUser = users.find(u => u.id === request.fromUserId);
+      const toUser = users.find(u => u.id === request.toUserId);
+      
+      return {
+        ...request,
+        mySlot,
+        theirSlot,
+        fromUser: { name: fromUser?.name, email: fromUser?.email },
+        toUser: { name: toUser?.name, email: toUser?.email }
+      };
+    });
+    
+    res.json({ 
+      incoming: enrichRequests(incoming), 
+      outgoing: enrichRequests(outgoing) 
+    });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
