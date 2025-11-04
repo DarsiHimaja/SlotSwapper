@@ -1,29 +1,66 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const { MongoClient } = require('mongodb');
 
 const router = express.Router();
-const prisma = new PrismaClient();
+const JWT_SECRET = 'your-secret-key';
 
 // Test route without auth
 router.get('/test', async (req, res) => {
   try {
-    await prisma.$connect();
-    res.json({ status: 'Database connected successfully', timestamp: new Date() });
+    res.json({ status: 'Server working', timestamp: new Date() });
   } catch (error) {
-    res.status(500).json({ error: error.message, details: error.stack });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// Push database schema
-router.get('/setup-db', async (req, res) => {
+// Simple register test
+router.post('/test-register', async (req, res) => {
   try {
-    // This will create the collections in MongoDB
-    await prisma.user.findMany();
-    await prisma.event.findMany();
-    await prisma.swapRequest.findMany();
-    res.json({ status: 'Database schema initialized successfully' });
+    const { name, email, password } = req.body;
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'All fields required' });
+    }
+
+    const MONGODB_URI = process.env.DATABASE_URL;
+    if (!MONGODB_URI) {
+      return res.status(500).json({ error: 'No database URL' });
+    }
+
+    const client = new MongoClient(MONGODB_URI);
+    await client.connect();
+    const db = client.db('slotswapper');
+    const users = db.collection('users');
+    
+    // Check if user exists
+    const existingUser = await users.findOne({ email });
+    if (existingUser) {
+      await client.close();
+      return res.status(400).json({ error: 'Email exists' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const result = await users.insertOne({
+      name,
+      email,
+      password: hashedPassword,
+      createdAt: new Date()
+    });
+    
+    await client.close();
+    
+    const token = jwt.sign({ userId: result.insertedId }, JWT_SECRET);
+    res.json({ 
+      success: true,
+      token, 
+      user: { id: result.insertedId, name, email } 
+    });
+    
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 });
 
