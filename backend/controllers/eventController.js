@@ -36,7 +36,7 @@ const updateEvent = async (req, res) => {
     const { title, startTime, endTime, status } = req.body;
     
     const event = await prisma.event.update({
-      where: { id: parseInt(id), ownerId: req.userId },
+      where: { id: id, ownerId: req.userId },
       data: {
         ...(title && { title }),
         ...(startTime && { startTime: new Date(startTime) }),
@@ -54,7 +54,7 @@ const deleteEvent = async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.event.delete({
-      where: { id: parseInt(id), ownerId: req.userId }
+      where: { id: id, ownerId: req.userId }
     });
     res.json({ message: 'Event deleted' });
   } catch (error) {

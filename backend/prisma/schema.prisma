@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
   name     String
   email    String @unique
   password String
@@ -18,23 +18,23 @@ model User {
 }
 
 model Event {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   startTime DateTime
   endTime   DateTime
   status    String   @default("BUSY") // BUSY, SWAPPABLE, SWAP_PENDING
-  ownerId   Int
+  ownerId   String   @db.ObjectId
   owner     User     @relation(fields: [ownerId], references: [id])
   mySlotRequests    SwapRequest[] @relation("MySlot")
   theirSlotRequests SwapRequest[] @relation("TheirSlot")
 }
 
 model SwapRequest {
-  id         Int    @id @default(autoincrement())
-  mySlotId   Int
-  theirSlotId Int
-  fromUserId Int
-  toUserId   Int
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  mySlotId   String @db.ObjectId
+  theirSlotId String @db.ObjectId
+  fromUserId String @db.ObjectId
+  toUserId   String @db.ObjectId
   status     String @default("PENDING") // PENDING, ACCEPTED, REJECTED
   mySlot     Event  @relation("MySlot", fields: [mySlotId], references: [id])
   theirSlot  Event  @relation("TheirSlot", fields: [theirSlotId], references: [id])

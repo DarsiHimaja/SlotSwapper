@@ -50,7 +50,7 @@ const respondToSwapRequest = async (req, res) => {
     const { accept } = req.body;
     
     const swapRequest = await prisma.swapRequest.findUnique({
-      where: { id: parseInt(id) },
+      where: { id: id },
       include: { mySlot: true, theirSlot: true }
     });
     
@@ -65,7 +65,7 @@ const respondToSwapRequest = async (req, res) => {
           data: { ownerId: swapRequest.fromUserId, status: 'BUSY' }
         }),
         prisma.swapRequest.update({
-          where: { id: parseInt(id) },
+          where: { id: id },
           data: { status: 'ACCEPTED' }
         })
       ]);
@@ -80,7 +80,7 @@ const respondToSwapRequest = async (req, res) => {
           data: { status: 'SWAPPABLE' }
         }),
         prisma.swapRequest.update({
-          where: { id: parseInt(id) },
+          where: { id: id },
           data: { status: 'REJECTED' }
         })
       ]);
