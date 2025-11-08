@@ -3,16 +3,20 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = 'your-secret-key';
 
-// Simple in-memory storage (for demo purposes)
-let users = [
-  {
+// Create demo user with correct password hash
+const createDemoUser = async () => {
+  const hashedPassword = await bcrypt.hash('demo123', 10);
+  return {
     id: 'demo-user-123',
     name: 'Demo User',
     email: 'demo@gmail.com',
-    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // demo123
+    password: hashedPassword,
     createdAt: new Date()
-  }
-];
+  };
+};
+
+// Simple in-memory storage (for demo purposes)
+let users = [];
 let events = [
   {
     id: 'demo-event-1',
@@ -32,6 +36,11 @@ let events = [
   }
 ];
 let swapRequests = [];
+
+// Initialize demo user
+(async () => {
+  users.push(await createDemoUser());
+})();
 
 const register = async (req, res) => {
   try {
