@@ -1,8 +1,21 @@
 const { useState, useEffect, useCallback } = React;
-const { BrowserRouter, Routes, Route, Navigate, Link } = window.ReactRouterDOM;
 
 // API Configuration
 const API_URL = '';
+
+// Simple Router Component
+function SimpleRouter({ currentPage, setCurrentPage, token }) {
+  switch (currentPage) {
+    case 'calendar':
+      return React.createElement(Calendar, { token, setCurrentPage });
+    case 'marketplace':
+      return React.createElement(Marketplace, { token, setCurrentPage });
+    case 'requests':
+      return React.createElement(Requests, { token, setCurrentPage });
+    default:
+      return React.createElement(Calendar, { token, setCurrentPage });
+  }
+}
 
 // Login Component
 function Login({ setToken, setUser }) {
@@ -39,81 +52,84 @@ function Login({ setToken, setUser }) {
     }
   };
 
-  return (
-    <div className="auth-form">
-      <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
-      {isLogin && (
-        <div className="demo-box">
-          <h4>Demo Credentials</h4>
-          <p><strong>Email:</strong> demo@gmail.com</p>
-          <p><strong>Password:</strong> demo123</p>
-        </div>
-      )}
-      <form onSubmit={handleSubmit}>
-        {!isLogin && (
-          <div className="form-group">
-            <label>Name</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
-        )}
-        <div className="form-group">
-          <label>Email</label>
-          <input
-            type="email"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input
-            type="password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required
-          />
-        </div>
-        <button type="submit" className="btn">
-          {isLogin ? 'Login' : 'Sign Up'}
-        </button>
-      </form>
-      <p style={{ textAlign: 'center', marginTop: '1rem', color: '#cbd5e1' }}>
-        {isLogin ? "Don't have an account? " : "Already have an account? "}
-        <button
-          type="button"
-          onClick={() => setIsLogin(!isLogin)}
-          style={{ background: 'none', border: 'none', color: '#06b6d4', cursor: 'pointer' }}
-        >
-          {isLogin ? 'Sign Up' : 'Login'}
-        </button>
-      </p>
-    </div>
+  return React.createElement('div', { className: 'auth-form' },
+    React.createElement('h2', null, isLogin ? 'Login' : 'Sign Up'),
+    isLogin && React.createElement('div', { className: 'demo-box' },
+      React.createElement('h4', null, 'Demo Credentials'),
+      React.createElement('p', null, React.createElement('strong', null, 'Email:'), ' demo@gmail.com'),
+      React.createElement('p', null, React.createElement('strong', null, 'Password:'), ' demo123')
+    ),
+    React.createElement('form', { onSubmit: handleSubmit },
+      !isLogin && React.createElement('div', { className: 'form-group' },
+        React.createElement('label', null, 'Name'),
+        React.createElement('input', {
+          type: 'text',
+          value: formData.name,
+          onChange: (e) => setFormData({ ...formData, name: e.target.value }),
+          required: true
+        })
+      ),
+      React.createElement('div', { className: 'form-group' },
+        React.createElement('label', null, 'Email'),
+        React.createElement('input', {
+          type: 'email',
+          value: formData.email,
+          onChange: (e) => setFormData({ ...formData, email: e.target.value }),
+          required: true
+        })
+      ),
+      React.createElement('div', { className: 'form-group' },
+        React.createElement('label', null, 'Password'),
+        React.createElement('input', {
+          type: 'password',
+          value: formData.password,
+          onChange: (e) => setFormData({ ...formData, password: e.target.value }),
+          required: true
+        })
+      ),
+      React.createElement('button', { type: 'submit', className: 'btn' },
+        isLogin ? 'Login' : 'Sign Up'
+      )
+    ),
+    React.createElement('p', { style: { textAlign: 'center', marginTop: '1rem', color: '#cbd5e1' } },
+      isLogin ? "Don't have an account? " : "Already have an account? ",
+      React.createElement('button', {
+        type: 'button',
+        onClick: () => setIsLogin(!isLogin),
+        style: { background: 'none', border: 'none', color: '#06b6d4', cursor: 'pointer' }
+      }, isLogin ? 'Sign Up' : 'Login')
+    )
   );
 }
 
 // Navbar Component
-function Navbar({ user, logout }) {
-  return (
-    <nav className="navbar">
-      <h1>SlotSwapper</h1>
-      <ul className="nav-links">
-        <li><Link to="/calendar">My Calendar</Link></li>
-        <li><Link to="/marketplace">Marketplace</Link></li>
-        <li><Link to="/requests">Requests</Link></li>
-        <li>
-          <span style={{ color: '#cbd5e1', marginRight: '1rem' }}>Welcome, {user?.name}</span>
-          <button onClick={logout} className="btn" style={{ padding: '0.5rem 1rem' }}>
-            Logout
-          </button>
-        </li>
-      </ul>
-    </nav>
+function Navbar({ user, logout, currentPage, setCurrentPage }) {
+  return React.createElement('nav', { className: 'navbar' },
+    React.createElement('h1', null, 'SlotSwapper'),
+    React.createElement('ul', { className: 'nav-links' },
+      React.createElement('li', null,
+        React.createElement('button', {
+          onClick: () => setCurrentPage('calendar'),
+          style: { background: 'none', border: 'none', color: currentPage === 'calendar' ? '#06b6d4' : '#cbd5e1', cursor: 'pointer', padding: '0.75rem 1.25rem', borderRadius: '8px' }
+        }, 'My Calendar')
+      ),
+      React.createElement('li', null,
+        React.createElement('button', {
+          onClick: () => setCurrentPage('marketplace'),
+          style: { background: 'none', border: 'none', color: currentPage === 'marketplace' ? '#06b6d4' : '#cbd5e1', cursor: 'pointer', padding: '0.75rem 1.25rem', borderRadius: '8px' }
+        }, 'Marketplace')
+      ),
+      React.createElement('li', null,
+        React.createElement('button', {
+          onClick: () => setCurrentPage('requests'),
+          style: { background: 'none', border: 'none', color: currentPage === 'requests' ? '#06b6d4' : '#cbd5e1', cursor: 'pointer', padding: '0.75rem 1.25rem', borderRadius: '8px' }
+        }, 'Requests')
+      ),
+      React.createElement('li', null,
+        React.createElement('span', { style: { color: '#cbd5e1', marginRight: '1rem' } }, `Welcome, ${user?.name}`),
+        React.createElement('button', { onClick: logout, className: 'btn', style: { padding: '0.5rem 1rem' } }, 'Logout')
+      )
+    )
   );
 }
 
@@ -195,83 +211,73 @@ function Calendar({ token }) {
     }
   };
 
-  return (
-    <div className="container">
-      <div className="page-header">
-        <h2>My Calendar</h2>
-        <button onClick={() => setShowForm(!showForm)} className="btn">
-          {showForm ? 'Cancel' : 'Add Event'}
-        </button>
-      </div>
-
-      {showForm && (
-        <div className="event-card" style={{ marginBottom: '2rem' }}>
-          <h3>Create New Event</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Title</label>
-              <input
-                type="text"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Start Time</label>
-              <input
-                type="datetime-local"
-                value={formData.startTime}
-                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>End Time</label>
-              <input
-                type="datetime-local"
-                value={formData.endTime}
-                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                required
-              />
-            </div>
-            <button type="submit" className="btn">Create Event</button>
-          </form>
-        </div>
-      )}
-
-      <div className="grid">
-        {events.map(event => (
-          <div key={event.id} className="event-card">
-            <div className="event-header">
-              <h3>{event.title}</h3>
-              <span className={`status-badge status-${event.status.toLowerCase()}`}>
-                {event.status}
-              </span>
-            </div>
-            <p style={{ color: '#cbd5e1', marginBottom: '0.5rem' }}>
-              <strong>Start:</strong> {new Date(event.startTime).toLocaleString()}
-            </p>
-            <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
-              <strong>End:</strong> {new Date(event.endTime).toLocaleString()}
-            </p>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              {event.status !== 'SWAP_PENDING' && (
-                <button
-                  onClick={() => toggleSwappable(event.id, event.status)}
-                  className={`btn ${event.status === 'SWAPPABLE' ? 'btn-danger' : 'btn-success'}`}
-                >
-                  {event.status === 'SWAPPABLE' ? 'Remove from Swap' : 'Make Swappable'}
-                </button>
-              )}
-              <button onClick={() => deleteEvent(event.id)} className="btn btn-danger">
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+  return React.createElement('div', { className: 'container' },
+    React.createElement('div', { className: 'page-header' },
+      React.createElement('h2', null, 'My Calendar'),
+      React.createElement('button', {
+        onClick: () => setShowForm(!showForm),
+        className: 'btn'
+      }, showForm ? 'Cancel' : 'Add Event')
+    ),
+    showForm && React.createElement('div', { className: 'event-card', style: { marginBottom: '2rem' } },
+      React.createElement('h3', null, 'Create New Event'),
+      React.createElement('form', { onSubmit: handleSubmit },
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', null, 'Title'),
+          React.createElement('input', {
+            type: 'text',
+            value: formData.title,
+            onChange: (e) => setFormData({ ...formData, title: e.target.value }),
+            required: true
+          })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', null, 'Start Time'),
+          React.createElement('input', {
+            type: 'datetime-local',
+            value: formData.startTime,
+            onChange: (e) => setFormData({ ...formData, startTime: e.target.value }),
+            required: true
+          })
+        ),
+        React.createElement('div', { className: 'form-group' },
+          React.createElement('label', null, 'End Time'),
+          React.createElement('input', {
+            type: 'datetime-local',
+            value: formData.endTime,
+            onChange: (e) => setFormData({ ...formData, endTime: e.target.value }),
+            required: true
+          })
+        ),
+        React.createElement('button', { type: 'submit', className: 'btn' }, 'Create Event')
+      )
+    ),
+    React.createElement('div', { className: 'grid' },
+      events.map(event =>
+        React.createElement('div', { key: event.id, className: 'event-card' },
+          React.createElement('div', { className: 'event-header' },
+            React.createElement('h3', null, event.title),
+            React.createElement('span', { className: `status-badge status-${event.status.toLowerCase()}` }, event.status)
+          ),
+          React.createElement('p', { style: { color: '#cbd5e1', marginBottom: '0.5rem' } },
+            React.createElement('strong', null, 'Start:'), ' ', new Date(event.startTime).toLocaleString()
+          ),
+          React.createElement('p', { style: { color: '#cbd5e1', marginBottom: '1rem' } },
+            React.createElement('strong', null, 'End:'), ' ', new Date(event.endTime).toLocaleString()
+          ),
+          React.createElement('div', { style: { display: 'flex', gap: '0.5rem' } },
+            event.status !== 'SWAP_PENDING' && React.createElement('button', {
+              onClick: () => toggleSwappable(event.id, event.status),
+              className: `btn ${event.status === 'SWAPPABLE' ? 'btn-danger' : 'btn-success'}`
+            }, event.status === 'SWAPPABLE' ? 'Remove from Swap' : 'Make Swappable'),
+            React.createElement('button', {
+              onClick: () => deleteEvent(event.id),
+              className: 'btn btn-danger'
+            }, 'Delete')
+          )
+        )
+      )
+    )
   );
 }
 
@@ -330,70 +336,61 @@ function Marketplace({ token }) {
     }
   };
 
-  return (
-    <div className="container">
-      <div className="page-header">
-        <h2>Marketplace</h2>
-        <span style={{ color: '#06b6d4', fontWeight: '600' }}>Available Slots</span>
-      </div>
-      
-      {swappableSlots.length === 0 ? (
-        <div className="event-card" style={{ textAlign: 'center' }}>
-          <h3>No Available Slots</h3>
-          <p>No swappable slots available at the moment. Check back later!</p>
-        </div>
-      ) : (
-        <div className="grid">
-          {swappableSlots.map(slot => (
-            <div key={slot.id} className="event-card">
-              <div className="event-header">
-                <h3>{slot.title}</h3>
-                <span className="status-badge status-swappable">SWAPPABLE</span>
-              </div>
-              <p style={{ color: '#cbd5e1', marginBottom: '0.5rem' }}>
-                <strong>Owner:</strong> {slot.owner.name}
-              </p>
-              <p style={{ color: '#cbd5e1', marginBottom: '0.5rem' }}>
-                <strong>Start:</strong> {new Date(slot.startTime).toLocaleString()}
-              </p>
-              <p style={{ color: '#cbd5e1', marginBottom: '1rem' }}>
-                <strong>End:</strong> {new Date(slot.endTime).toLocaleString()}
-              </p>
-              
-              {myEvents.length > 0 && (
-                <div style={{ marginTop: '1rem' }}>
-                  <label style={{ color: '#cbd5e1', fontWeight: '600' }}>Swap with my slot:</label>
-                  <select
-                    onChange={(e) => {
-                      if (e.target.value) {
-                        requestSwap(slot.id, e.target.value);
-                        e.target.value = '';
-                      }
-                    }}
-                    style={{ width: '100%', padding: '0.5rem', marginTop: '0.5rem' }}
-                  >
-                    <option value="">Select your slot to swap</option>
-                    {myEvents.map(event => (
-                      <option key={event.id} value={event.id}>
-                        {event.title} - {new Date(event.startTime).toLocaleString()}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              
-              {myEvents.length === 0 && (
-                <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #ef4444' }}>
-                  <p style={{ color: '#ef4444', margin: 0 }}>
-                    You need swappable slots to request a swap
-                  </p>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+  return React.createElement('div', { className: 'container' },
+    React.createElement('div', { className: 'page-header' },
+      React.createElement('h2', null, 'Marketplace'),
+      React.createElement('span', { style: { color: '#06b6d4', fontWeight: '600' } }, 'Available Slots')
+    ),
+    swappableSlots.length === 0 ?
+      React.createElement('div', { className: 'event-card', style: { textAlign: 'center' } },
+        React.createElement('h3', null, 'No Available Slots'),
+        React.createElement('p', null, 'No swappable slots available at the moment. Check back later!')
+      ) :
+      React.createElement('div', { className: 'grid' },
+        swappableSlots.map(slot =>
+          React.createElement('div', { key: slot.id, className: 'event-card' },
+            React.createElement('div', { className: 'event-header' },
+              React.createElement('h3', null, slot.title),
+              React.createElement('span', { className: 'status-badge status-swappable' }, 'SWAPPABLE')
+            ),
+            React.createElement('p', { style: { color: '#cbd5e1', marginBottom: '0.5rem' } },
+              React.createElement('strong', null, 'Owner:'), ' ', slot.owner.name
+            ),
+            React.createElement('p', { style: { color: '#cbd5e1', marginBottom: '0.5rem' } },
+              React.createElement('strong', null, 'Start:'), ' ', new Date(slot.startTime).toLocaleString()
+            ),
+            React.createElement('p', { style: { color: '#cbd5e1', marginBottom: '1rem' } },
+              React.createElement('strong', null, 'End:'), ' ', new Date(slot.endTime).toLocaleString()
+            ),
+            myEvents.length > 0 && React.createElement('div', { style: { marginTop: '1rem' } },
+              React.createElement('label', { style: { color: '#cbd5e1', fontWeight: '600' } }, 'Swap with my slot:'),
+              React.createElement('select', {
+                onChange: (e) => {
+                  if (e.target.value) {
+                    requestSwap(slot.id, e.target.value);
+                    e.target.value = '';
+                  }
+                },
+                style: { width: '100%', padding: '0.5rem', marginTop: '0.5rem' }
+              },
+                React.createElement('option', { value: '' }, 'Select your slot to swap'),
+                myEvents.map(event =>
+                  React.createElement('option', { key: event.id, value: event.id },
+                    `${event.title} - ${new Date(event.startTime).toLocaleString()}`
+                  )
+                )
+              )
+            ),
+            myEvents.length === 0 && React.createElement('div', {
+              style: { background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #ef4444' }
+            },
+              React.createElement('p', { style: { color: '#ef4444', margin: 0 } },
+                'You need swappable slots to request a swap'
+              )
+            )
+          )
+        )
+      )
   );
 }
 
@@ -437,86 +434,78 @@ function Requests({ token }) {
     }
   };
 
-  return (
-    <div className="container">
-      <div className="page-header">
-        <h2>Swap Requests</h2>
-      </div>
-      
-      <div style={{ marginBottom: '3rem' }}>
-        <h3 style={{ color: '#f1f5f9', marginBottom: '1.5rem', fontSize: '1.5rem' }}>Incoming Requests</h3>
-        {requests.incoming.length === 0 ? (
-          <div className="event-card" style={{ textAlign: 'center' }}>
-            <h3>No Incoming Requests</h3>
-            <p>You don't have any pending swap requests.</p>
-          </div>
-        ) : (
-          requests.incoming.map(request => (
-            <div key={request.id} className="event-card">
-              <h4>Swap Request from {request.fromUser.name}</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '1rem 0' }}>
-                <div style={{ background: '#334155', padding: '1rem', borderRadius: '8px' }}>
-                  <h5 style={{ color: '#06b6d4' }}>Their Slot:</h5>
-                  <p><strong>{request.mySlot.title}</strong></p>
-                  <p>{new Date(request.mySlot.startTime).toLocaleString()} - {new Date(request.mySlot.endTime).toLocaleString()}</p>
-                </div>
-                <div style={{ background: '#334155', padding: '1rem', borderRadius: '8px' }}>
-                  <h5 style={{ color: '#06b6d4' }}>Your Slot:</h5>
-                  <p><strong>{request.theirSlot.title}</strong></p>
-                  <p>{new Date(request.theirSlot.startTime).toLocaleString()} - {new Date(request.theirSlot.endTime).toLocaleString()}</p>
-                </div>
-              </div>
-              <p><strong>Status:</strong> <span className={`status-badge status-${request.status.toLowerCase()}`}>{request.status}</span></p>
-              {request.status === 'PENDING' && (
-                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
-                  <button
-                    onClick={() => respondToRequest(request.id, true)}
-                    className="btn btn-success"
-                  >
-                    Accept
-                  </button>
-                  <button
-                    onClick={() => respondToRequest(request.id, false)}
-                    className="btn btn-danger"
-                  >
-                    Reject
-                  </button>
-                </div>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      <div>
-        <h3 style={{ color: '#f1f5f9', marginBottom: '1.5rem', fontSize: '1.5rem' }}>Outgoing Requests</h3>
-        {requests.outgoing.length === 0 ? (
-          <div className="event-card" style={{ textAlign: 'center' }}>
-            <h3>No Outgoing Requests</h3>
-            <p>You haven't sent any swap requests yet.</p>
-          </div>
-        ) : (
-          requests.outgoing.map(request => (
-            <div key={request.id} className="event-card">
-              <h4>Swap Request to {request.toUser.name}</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '1rem 0' }}>
-                <div style={{ background: '#334155', padding: '1rem', borderRadius: '8px' }}>
-                  <h5 style={{ color: '#06b6d4' }}>Your Slot:</h5>
-                  <p><strong>{request.mySlot.title}</strong></p>
-                  <p>{new Date(request.mySlot.startTime).toLocaleString()} - {new Date(request.mySlot.endTime).toLocaleString()}</p>
-                </div>
-                <div style={{ background: '#334155', padding: '1rem', borderRadius: '8px' }}>
-                  <h5 style={{ color: '#06b6d4' }}>Their Slot:</h5>
-                  <p><strong>{request.theirSlot.title}</strong></p>
-                  <p>{new Date(request.theirSlot.startTime).toLocaleString()} - {new Date(request.theirSlot.endTime).toLocaleString()}</p>
-                </div>
-              </div>
-              <p><strong>Status:</strong> <span className={`status-badge status-${request.status.toLowerCase()}`}>{request.status}</span></p>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
+  return React.createElement('div', { className: 'container' },
+    React.createElement('div', { className: 'page-header' },
+      React.createElement('h2', null, 'Swap Requests')
+    ),
+    React.createElement('div', { style: { marginBottom: '3rem' } },
+      React.createElement('h3', { style: { color: '#f1f5f9', marginBottom: '1.5rem', fontSize: '1.5rem' } }, 'Incoming Requests'),
+      requests.incoming.length === 0 ?
+        React.createElement('div', { className: 'event-card', style: { textAlign: 'center' } },
+          React.createElement('h3', null, 'No Incoming Requests'),
+          React.createElement('p', null, "You don't have any pending swap requests.")
+        ) :
+        requests.incoming.map(request =>
+          React.createElement('div', { key: request.id, className: 'event-card' },
+            React.createElement('h4', null, `Swap Request from ${request.fromUser.name}`),
+            React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '1rem 0' } },
+              React.createElement('div', { style: { background: '#334155', padding: '1rem', borderRadius: '8px' } },
+                React.createElement('h5', { style: { color: '#06b6d4' } }, 'Their Slot:'),
+                React.createElement('p', null, React.createElement('strong', null, request.mySlot.title)),
+                React.createElement('p', null, `${new Date(request.mySlot.startTime).toLocaleString()} - ${new Date(request.mySlot.endTime).toLocaleString()}`)
+              ),
+              React.createElement('div', { style: { background: '#334155', padding: '1rem', borderRadius: '8px' } },
+                React.createElement('h5', { style: { color: '#06b6d4' } }, 'Your Slot:'),
+                React.createElement('p', null, React.createElement('strong', null, request.theirSlot.title)),
+                React.createElement('p', null, `${new Date(request.theirSlot.startTime).toLocaleString()} - ${new Date(request.theirSlot.endTime).toLocaleString()}`)
+              )
+            ),
+            React.createElement('p', null,
+              React.createElement('strong', null, 'Status:'), ' ',
+              React.createElement('span', { className: `status-badge status-${request.status.toLowerCase()}` }, request.status)
+            ),
+            request.status === 'PENDING' && React.createElement('div', { style: { display: 'flex', gap: '0.5rem', marginTop: '1rem' } },
+              React.createElement('button', {
+                onClick: () => respondToRequest(request.id, true),
+                className: 'btn btn-success'
+              }, 'Accept'),
+              React.createElement('button', {
+                onClick: () => respondToRequest(request.id, false),
+                className: 'btn btn-danger'
+              }, 'Reject')
+            )
+          )
+        )
+    ),
+    React.createElement('div', null,
+      React.createElement('h3', { style: { color: '#f1f5f9', marginBottom: '1.5rem', fontSize: '1.5rem' } }, 'Outgoing Requests'),
+      requests.outgoing.length === 0 ?
+        React.createElement('div', { className: 'event-card', style: { textAlign: 'center' } },
+          React.createElement('h3', null, 'No Outgoing Requests'),
+          React.createElement('p', null, "You haven't sent any swap requests yet.")
+        ) :
+        requests.outgoing.map(request =>
+          React.createElement('div', { key: request.id, className: 'event-card' },
+            React.createElement('h4', null, `Swap Request to ${request.toUser.name}`),
+            React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', margin: '1rem 0' } },
+              React.createElement('div', { style: { background: '#334155', padding: '1rem', borderRadius: '8px' } },
+                React.createElement('h5', { style: { color: '#06b6d4' } }, 'Your Slot:'),
+                React.createElement('p', null, React.createElement('strong', null, request.mySlot.title)),
+                React.createElement('p', null, `${new Date(request.mySlot.startTime).toLocaleString()} - ${new Date(request.mySlot.endTime).toLocaleString()}`)
+              ),
+              React.createElement('div', { style: { background: '#334155', padding: '1rem', borderRadius: '8px' } },
+                React.createElement('h5', { style: { color: '#06b6d4' } }, 'Their Slot:'),
+                React.createElement('p', null, React.createElement('strong', null, request.theirSlot.title)),
+                React.createElement('p', null, `${new Date(request.theirSlot.startTime).toLocaleString()} - ${new Date(request.theirSlot.endTime).toLocaleString()}`)
+              )
+            ),
+            React.createElement('p', null,
+              React.createElement('strong', null, 'Status:'), ' ',
+              React.createElement('span', { className: `status-badge status-${request.status.toLowerCase()}` }, request.status)
+            )
+          )
+        )
+    )
   );
 }
 
@@ -524,6 +513,7 @@ function Requests({ token }) {
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user') || 'null'));
+  const [currentPage, setCurrentPage] = useState('calendar');
 
   useEffect(() => {
     if (token) {
@@ -543,16 +533,9 @@ function App() {
     return React.createElement(Login, { setToken, setUser });
   }
 
-  return React.createElement(BrowserRouter, null,
-    React.createElement('div', { className: 'App' },
-      React.createElement(Navbar, { user, logout }),
-      React.createElement(Routes, null,
-        React.createElement(Route, { path: '/', element: React.createElement(Navigate, { to: '/calendar' }) }),
-        React.createElement(Route, { path: '/calendar', element: React.createElement(Calendar, { token }) }),
-        React.createElement(Route, { path: '/marketplace', element: React.createElement(Marketplace, { token }) }),
-        React.createElement(Route, { path: '/requests', element: React.createElement(Requests, { token }) })
-      )
-    )
+  return React.createElement('div', { className: 'App' },
+    React.createElement(Navbar, { user, logout, currentPage, setCurrentPage }),
+    React.createElement(SimpleRouter, { currentPage, setCurrentPage, token })
   );
 }
 
