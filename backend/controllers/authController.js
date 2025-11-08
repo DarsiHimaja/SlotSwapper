@@ -4,8 +4,33 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'your-secret-key';
 
 // Simple in-memory storage (for demo purposes)
-let users = [];
-let events = [];
+let users = [
+  {
+    id: 'demo-user-123',
+    name: 'Demo User',
+    email: 'demo@gmail.com',
+    password: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // demo123
+    createdAt: new Date()
+  }
+];
+let events = [
+  {
+    id: 'demo-event-1',
+    title: 'Morning Meeting',
+    startTime: new Date('2024-11-05T09:00:00'),
+    endTime: new Date('2024-11-05T10:00:00'),
+    status: 'SWAPPABLE',
+    ownerId: 'demo-user-123'
+  },
+  {
+    id: 'demo-event-2',
+    title: 'Lunch Break',
+    startTime: new Date('2024-11-05T12:00:00'),
+    endTime: new Date('2024-11-05T13:00:00'),
+    status: 'BUSY',
+    ownerId: 'demo-user-123'
+  }
+];
 let swapRequests = [];
 
 const register = async (req, res) => {

@@ -38,6 +38,19 @@ function Login({ setToken, setUser }) {
     <div className="auth-form">
       <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
       <form onSubmit={handleSubmit}>
+        {isLogin && (
+          <div style={{ 
+            background: '#f0f8ff', 
+            padding: '1rem', 
+            borderRadius: '8px', 
+            marginBottom: '1rem',
+            border: '1px solid #3498db'
+          }}>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#2c3e50' }}>Demo Credentials</h4>
+            <p style={{ margin: '0.25rem 0', color: '#2c3e50' }}><strong>Email:</strong> demo@gmail.com</p>
+            <p style={{ margin: '0.25rem 0', color: '#2c3e50' }}><strong>Password:</strong> demo123</p>
+          </div>
+        )}
         {!isLogin && (
           <div className="form-group">
             <label>Name</label>
