@@ -1,11 +1,8 @@
 const { useState, useEffect, useCallback } = React;
-const { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } = ReactRouterDOM;
+const { BrowserRouter, Routes, Route, Navigate, Link } = window.ReactRouterDOM;
 
 // API Configuration
 const API_URL = '';
-
-// Auth Context
-const AuthContext = React.createContext();
 
 // Login Component
 function Login({ setToken, setUser }) {
@@ -543,23 +540,21 @@ function App() {
   };
 
   if (!token) {
-    return <Login setToken={setToken} setUser={setUser} />;
+    return React.createElement(Login, { setToken, setUser });
   }
 
-  return (
-    <BrowserRouter>
-      <div className="App">
-        <Navbar user={user} logout={logout} />
-        <Routes>
-          <Route path="/" element={<Navigate to="/calendar" />} />
-          <Route path="/calendar" element={<Calendar token={token} />} />
-          <Route path="/marketplace" element={<Marketplace token={token} />} />
-          <Route path="/requests" element={<Requests token={token} />} />
-        </Routes>
-      </div>
-    </BrowserRouter>
+  return React.createElement(BrowserRouter, null,
+    React.createElement('div', { className: 'App' },
+      React.createElement(Navbar, { user, logout }),
+      React.createElement(Routes, null,
+        React.createElement(Route, { path: '/', element: React.createElement(Navigate, { to: '/calendar' }) }),
+        React.createElement(Route, { path: '/calendar', element: React.createElement(Calendar, { token }) }),
+        React.createElement(Route, { path: '/marketplace', element: React.createElement(Marketplace, { token }) }),
+        React.createElement(Route, { path: '/requests', element: React.createElement(Requests, { token }) })
+      )
+    )
   );
 }
 
 // Render the app
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
